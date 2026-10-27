@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Co-Live</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --shell-bg0:#100F19;
+  --shell-bg1:#1C1B29;
+  --shell-bg2:#2B2942;
+  --paper:#F1EFEA;
+  --mist:#8D89A6;
+  --line:rgba(241,239,234,0.10);
+
+  --money-bg:#F4F1EA;
+  --money-surface:#FFFFFF;
+  --money-ink:#1C2321;
+  --money-ink-soft:#5B6660;
+  --money-line:#DADFD9;
+  --money-accent:#1F6F54;
+  --money-accent-soft:#E4EEE9;
+  --money-gold:#B8862E;
+  --money-gold-soft:#F3E9D4;
+  --money-alert:#B33F32;
+
+  --ember:#F4A261;
+  --ember-soft:rgba(244,162,97,0.10);
+  --signal:#E63946;
+  --signal-soft:rgba(230,57,70,0.12);
+
+  --aqua:#2EC4B6;
+  --coral:#FF6B5B;
+  --deep:#123B4F;
+
+  --display:'Fraunces', Georgia, serif;
+  --body:'Inter', system-ui, sans-serif;
+  --mono:'JetBrains Mono', ui-monospace, monospace;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:var(--body);
+  background: radial-gradient(ellipse 1000px 520px at 50% -120px, var(--shell-bg2) 0%, var(--shell-bg0) 62%);
+  color:var(--paper);
+  min-height:100vh;
+  padding:20px;
+}
+.app{ max-width:1100px; margin:0 auto; }
+
+/* Header */
+.header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+.title-wrap{ display:flex; align-items:baseline; gap:12px; }
+.title-wrap h1{ font-family:var(--display); font-weight:600; font-size:30px; margin:0; }
+.clock{ font-family:var(--mono); color:var(--mist); font-size:13px; }
+.ghost-btn{
+  display:flex; align-items:center; gap:6px;
+  background:var(--shell-bg1); color:var(--mist);
+  border:1px solid var(--line); border-radius:999px;
+  font-size:12px; padding:7px 14px; cursor:pointer;
+  font-family:var(--body);
+}
+.ghost-btn.on{ color:var(--ember); }
+
+/* Vitals */
+.vitals{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+.vital-card{
+  text-align:left; background:rgba(241,239,234,0.04);
+  border:1px solid var(--line); border-radius:16px;
+  padding:12px 14px; cursor:pointer; color:inherit; font-family:inherit;
+  transition:border-color .15s ease;
+}
+.vital-card.active{ border-width:1.5px; }
+.vital-card.urgent{ background:rgba(255,107,91,0.12); }
+.vital-label{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:600; margin-bottom:6px; }
+.vital-value{ font-family:var(--mono); font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vital-sub{ color:var(--mist); font-size:11px; margin-top:2px; }
+
+/* Tabs */
+.tabs{ display:flex; gap:8px; margin-bottom:20px; }
+.tab-btn{
+  display:flex; align-items:center; gap:6px;
+  font-family:var(--body); font-size:14px; font-weight:600;
+  border:1px solid var(--line); background:transparent; color:var(--mist);
+  border-radius:999px; padding:9px 18px; cursor:pointer;
+}
+.tab-btn.active{ color:var(--shell-bg0); }
+
+.panel{ display:none; }
+.panel.active{ display:block; }
+
+footer.footer{
+  margin-top:32px; padding-top:16px; border-top:1px solid var(--line);
+  font-size:11px; color:rgba(141,137,166,0.7); line-height:1.6;
+}
+
+/* ---------------- Money panel ---------------- */
+.money-panel{ background:var(--money-bg); color:var(--money-ink); border-radius:16px; padding:20px; }
+.money-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+.money-header h2{ font-family:var(--display); font-size:22px; font-weight:600; margin:0; }
+.dots{ display:flex; gap:4px; margin-right:6px; }
+.dots span{ width:7px;height:7px;border-radius:50%; background:var(--money-line); display:inline-block; }
+.add-expense-btn{
+  display:flex; align-items:center; gap:6px; background:var(--money-accent); color:#fff;
+  border:none; border-radius:8px; padding:9px 14px; font-weight:600; font-size:13px; cursor:pointer; font-family:var(--body);
+}
+.month-nav{
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px dashed var(--money-line); padding-bottom:12px; margin-bottom:16px;
+}
+.month-nav-left{ display:flex; align-items:center; gap:6px; }
+.icon-btn{ background:none; border:none; color:var(--money-ink-soft); cursor:pointer; padding:6px; border-radius:6px; }
+.icon-btn:hover{ background:rgba(0,0,0,0.05); }
+.month-label{ font-family:var(--display); font-size:17px; font-weight:500; min-width:150px; text-align:center; background:none; border:none; cursor:pointer; color:var(--money-ink); }
+.reset-link{ font-size:12px; color:var(--money-ink-soft); background:none; border:none; cursor:pointer; }
+.reset-confirm{ font-size:12px; display:flex; align-items:center; gap:8px; color:var(--money-ink-soft); }
+.reset-confirm button{ background:none; border:none; cursor:pointer; font-weight:600; }
+
+.money-grid{ display:grid; grid-template-columns:2fr 1fr; gap:16px; align-items:start; }
+@media (max-width: 800px){ .money-grid{ grid-template-columns:1fr; } }
+
+.calendar{ background:var(--money-surface); border:1px solid var(--money-line); border-radius:16px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,0.03); }
+.cal-weekdays{ display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--money-line); }
+.cal-weekdays div{ text-align:center; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--money-ink-soft); padding:8px 0; }
+.cal-cells{ display:grid; grid-template-columns:repeat(7,1fr); }
+.cal-cell{
+  border-bottom:1px solid var(--money-line); border-right:1px solid var(--money-line);
+  min-height:64px; padding:6px; text-align:left; background:none; cursor:pointer; font-family:inherit;
+  display:flex; flex-direction:column; justify-content:space-between; color:inherit;
+}
+.cal-cell:hover{ background:rgba(0,0,0,0.03); }
+.cal-cell.out{ opacity:.35; }
+.cal-cell.today{ background:var(--money-accent-soft); }
+.cal-date{ font-family:var(--mono); font-size:13px; font-weight:500; }
+.cal-cell.today .cal-date{ color:var(--money-accent); }
+.cal-dots{ display:flex; gap:2px; margin-bottom:2px; }
+.cal-dots span{ width:5px;height:5px;border-radius:50%; display:inline-block; }
+.cal-total{ font-family:var(--mono); font-size:11px; color:var(--money-ink-soft); }
+
+.card{ background:var(--money-surface); border:1px solid var(--money-line); border-radius:16px; padding:14px; box-shadow:0 1px 2px rgba(0,0,0,0.03); margin-bottom:16px; }
+.card-label{ font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--money-ink-soft); margin-bottom:6px; }
+.card-total{ font-family:var(--mono); font-size:24px; font-weight:600; margin-bottom:8px; }
+.card-meta{ display:flex; justify-content:space-between; font-size:12px; color:var(--money-ink-soft); margin-bottom:10px; }
+.cat-row{ display:flex; align-items:center; justify-content:space-between; font-size:12px; padding:3px 0; }
+.cat-row .name{ display:flex; align-items:center; gap:6px; color:var(--money-ink-soft); }
+.cat-dot{ width:8px;height:8px;border-radius:50%; display:inline-block; }
+.empty-note{ font-size:12px; font-style:italic; color:var(--money-ink-soft); padding:6px 0; }
+
+.goals-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.add-goal-link{ display:flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:var(--money-accent); background:none; border:none; cursor:pointer; }
+.goal-row{ border-top:1px dashed var(--money-line); padding-top:10px; margin-top:10px; }
+.goal-row:first-child{ border-top:none; margin-top:0; padding-top:0; }
+.goal-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+.goal-name{ display:flex; align-items:center; gap:6px; font-size:13px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.goal-del{ background:none;border:none;color:var(--money-ink-soft);cursor:pointer;flex-shrink:0; }
+.bar-track{ height:6px; background:var(--money-line); border-radius:99px; overflow:hidden; margin-bottom:4px; }
+.bar-fill{ height:100%; border-radius:99px; }
+.goal-bottom{ display:flex; justify-content:space-between; align-items:center; font-size:11px; }
+.goal-amt{ font-family:var(--mono); color:var(--money-ink-soft); }
+.contribute-link{ font-size:11px; font-weight:600; color:var(--money-gold); background:none; border:none; cursor:pointer; }
+.over-flag{ color:var(--money-alert); font-weight:600; }
+.deadline-note{ font-size:11px; color:var(--money-ink-soft); margin-top:4px; }
+
+/* ---------------- Routine panel ---------------- */
+.routine-banner{
+  border:1px solid var(--line); border-radius:16px; padding:14px 18px; margin-bottom:16px;
+  background:var(--ember-soft);
+}
+.routine-banner.firing{ background:var(--signal-soft); border-color:rgba(230,57,70,0.4); }
+.banner-tag{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; color:var(--ember); margin-bottom:4px; }
+.routine-banner.firing .banner-tag{ color:var(--signal); }
+.banner-task{ font-family:var(--display); font-size:19px; font-weight:700; margin-bottom:4px; }
+.banner-countdown{ font-family:var(--mono); font-size:13px; }
+.routine-hint{ color:var(--mist); font-size:12px; margin-bottom:14px; }
+
+.routine-tabbar{ display:flex; gap:8px; overflow-x:auto; padding-bottom:8px; margin-bottom:16px; }
+.routine-tabbar::-webkit-scrollbar{ height:6px; }
+.routine-tabbar::-webkit-scrollbar-thumb{ background:rgba(241,239,234,0.18); border-radius:99px; }
+.rt-tab{
+  flex:0 0 auto; border:1px solid var(--line); background:transparent; color:var(--paper);
+  border-radius:999px; padding:8px 14px; font-size:12px; font-weight:600; cursor:pointer;
+  max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-family:var(--mono);
+}
+.rt-tab.active{ border-color:var(--ember); color:var(--ember); background:rgba(244,162,97,0.12); }
+.rt-tab.add{ font-family:var(--body); color:var(--mist); }
+.rt-tab[draggable="true"]{ cursor:grab; }
+.rt-tab.dragging{ opacity:.4; }
+
+.rt-form{ background:var(--shell-bg1); border:1px solid var(--line); border-radius:16px; padding:20px; }
+.field-label{ font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--mist); margin-bottom:6px; display:block; }
+.rt-form input[type="text"], .rt-form input[type="time"], .rt-form textarea{
+  background:var(--shell-bg2); border:1px solid var(--line); color:var(--paper);
+  border-radius:9px; padding:9px 11px; font-size:14px; font-family:var(--body); width:100%;
+}
+.rt-form textarea{ font-family:var(--body); resize:vertical; min-height:80px; }
+.field-block{ margin-bottom:14px; }
+.rt-countdown{ font-family:var(--mono); color:var(--ember); font-size:13px; margin:14px 0 4px; }
+.rt-error{ color:var(--signal); font-size:11px; margin-top:4px; }
+.rt-actions{ display:flex; gap:8px; margin-top:16px; }
+.rt-actions button{
+  background:var(--shell-bg2); color:var(--paper); border:none; border-radius:8px;
+  padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer; font-family:var(--body);
+}
+.rt-actions button:disabled{ opacity:.35; cursor:default; }
+.rt-actions button.danger{ color:var(--signal); }
+.rt-empty{ color:var(--mist); font-size:13px; font-style:italic; padding:16px 0; }
+
+/* ---------------- Hydration panel ---------------- */
+.hydration-wrap{ display:flex; flex-direction:column; align-items:center; text-align:center; }
+.gauge-wrap{ position:relative; width:220px; height:260px; margin:6px 0 18px; }
+.gauge-wrap svg{ position:absolute; inset:0; }
+#waveGroup{ transition: transform 0.6s cubic-bezier(.4,0,.2,1); }
+.wave-path{ animation: waveShift 4.5s linear infinite; }
+@keyframes waveShift{ from{ transform:translateX(0);} to{ transform:translateX(-220px);} }
+.gauge-readout{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+.gauge-time{ font-family:var(--display); font-weight:600; font-size:34px; text-shadow:0 2px 12px rgba(0,0,0,.35); }
+.gauge-label{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:rgba(241,239,234,.75); margin-top:4px; }
+.hydra-status{ font-size:14px; color:var(--mist); min-height:20px; margin-bottom:18px; }
+.hydra-status.due{ color:var(--coral); font-weight:600; }
+.log-water-btn{
+  background:var(--aqua); color:var(--deep); font-weight:700; font-size:15px;
+  border:none; border-radius:999px; padding:13px 30px; cursor:pointer; font-family:var(--body);
+  box-shadow:0 8px 24px rgba(46,196,182,.28);
+}
+.log-water-btn.ripple{ animation:pulse .5s ease; }
+@keyframes pulse{ 0%{ box-shadow:0 0 0 0 rgba(46,196,182,.55);} 100%{ box-shadow:0 0 0 22px rgba(46,196,182,0);} }
+.interval-row{ display:flex; align-items:center; gap:8px; margin-top:18px; font-size:12px; color:var(--mist); }
+.interval-row input{ width:56px; background:var(--shell-bg2); border:1px solid var(--line); color:var(--paper); border-radius:6px; padding:5px; text-align:center; font-family:var(--mono); }
+.hydra-log{ width:100%; max-width:380px; margin-top:30px; border-top:1px solid var(--line); padding-top:14px; text-align:left; }
+.hydra-log h3{ font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--mist); margin:0 0 10px; }
+.hydra-log-row{ display:flex; align-items:center; gap:10px; padding:6px 0; font-size:13px; border-bottom:1px solid rgba(241,239,234,.06); }
+.hydra-dot{ width:6px;height:6px;border-radius:50%; background:var(--aqua); flex-shrink:0; }
+.hydra-ago{ margin-left:auto; color:var(--mist); font-size:12px; }
+
+/* ---------------- Modal ---------------- */
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(28,35,33,0.45); display:none;
+  align-items:center; justify-content:center; padding:16px; z-index:50;
+}
+.modal-backdrop.open{ display:flex; }
+.modal-box{
+  background:var(--money-surface); color:var(--money-ink); width:100%; max-width:420px;
+  border-radius:16px; padding:20px; max-height:85vh; overflow-y:auto; font-family:var(--body);
+}
+.modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.modal-head h2{ font-family:var(--display); font-size:18px; font-weight:600; margin:0; }
+.modal-close{ background:none; border:none; color:var(--money-ink-soft); cursor:pointer; }
+.modal-box label{ font-size:12px; color:var(--money-ink-soft); display:block; margin-bottom:4px; }
+.modal-box input, .modal-box select{
+  border:1px solid var(--money-line); border-radius:8px; padding:9px 11px; font-size:14px;
+  width:100%; font-family:var(--body); margin-bottom:12px;
+}
+.modal-row{ display:flex; gap:8px; }
+.modal-row > div{ flex:1; }
+.modal-submit{ width:100%; border:none; border-radius:8px; padding:10px; color:#fff; font-weight:600; font-size:14px; cursor:pointer; margin-top:4px; }
+.type-toggle{ display:flex; gap:8px; margin-bottom:12px; }
+.type-toggle button{
+  flex:1; border:1px solid var(--money-line); background:transparent; border-radius:8px;
+  padding:9px; font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;
+  color:var(--money-ink-soft); font-family:var(--body);
+}
+.type-toggle button.active-budget{ background:var(--money-accent-soft); border-color:var(--money-accent); color:var(--money-accent); }
+.type-toggle button.active-savings{ background:var(--money-gold-soft); border-color:var(--money-gold); color:var(--money-gold); }
+.day-item{ display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--money-line); padding-bottom:6px; margin-bottom:6px; font-size:13px; }
+.day-item .left{ display:flex; align-items:center; gap:8px; min-width:0; }
+.day-item .left span.name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block; }
+.day-item .right{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.day-item button{ background:none;border:none;color:var(--money-ink-soft);cursor:pointer; }
+.day-total-row{ display:flex; justify-content:space-between; font-weight:600; font-size:13px; padding-top:2px; margin-bottom:14px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="title-wrap">
+      <h1>Co-Live</h1>
+      <span class="clock" id="clockLabel">--:--:--</span>
+    </div>
+    <button class="ghost-btn" id="alertsBtn">Enable alerts</button>
+  </div>
+
+  <div class="vitals">
+    <button class="vital-card active" id="vitalMoney">
+      <div class="vital-label" style="color:var(--money-accent)">Spent today</div>
+      <div class="vital-value" id="vitalMoneyValue">\u20B90</div>
+    </button>
+    <button class="vital-card" id="vitalRoutine">
+      <div class="vital-label" style="color:var(--ember)">Routine</div>
+      <div class="vital-value" id="vitalRoutineValue">Nothing scheduled</div>
+      <div class="vital-sub" id="vitalRoutineSub"></div>
+    </button>
+    <button class="vital-card" id="vitalHydration">
+      <div class="vital-label" style="color:var(--aqua)">Next glass</div>
+      <div class="vital-value" id="vitalHydrationValue">--:--</div>
+    </button>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="money" style="background:var(--money-accent);color:var(--shell-bg0)" onclick="showTab('money')">Money</button>
+    <button class="tab-btn" data-tab="routine" onclick="showTab('routine')">Routine</button>
+    <button class="tab-btn" data-tab="hydration" onclick="showTab('hydration')">Hydration</button>
+  </nav>
+
+  <main>
+    <section id="panel-money" class="panel active money-panel"></section>
+    <section id="panel-routine" class="panel routine-panel"></section>
+    <section id="panel-hydration" class="panel hydration-panel"></section>
+  </main>
+
+  <footer class="footer">
+    Money, routine, and hydration all live here together. Everything saves automatically to this browser
+    (via localStorage) &mdash; open this same file in the same browser later and it'll still be here.
+    Alerts and countdowns only run while this page stays open.
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="dayModalBackdrop">
+  <div class="modal-box" id="dayModalBox"></div>
+</div>
+<div class="modal-backdrop" id="goalModalBackdrop">
+  <div class="modal-box" id="goalModalBox"></div>
+</div>
+<div class="modal-backdrop" id="taskModalBackdrop">
+  <div class="modal-box" id="taskModalBox"></div>
+</div>
+
+<script>
+/* ============================================================== */
+/* Data + helpers                                                   */
+/* ============================================================== */
+
+const CATEGORIES = [
+  { id:"food", label:"Food", color:"#C97A4A" },
+  { id:"transport", label:"Transport", color:"#4A7C9B" },
+  { id:"shopping", label:"Shopping", color:"#8B6FB0" },
+  { id:"bills", label:"Bills", color:"#A65A6B" },
+  { id:"entertainment", label:"Entertainment", color:"#C9A227" },
+  { id:"health", label:"Health", color:"#3E8E82" },
+  { id:"other", label:"Other", color:"#8A8F87" },
+];
+const WEEKDAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const WARN_MS = 5*60*1000;
+
+function pad2(n){ return String(n).padStart(2,"0"); }
+function toDateKey(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function parseDateKey(key){ const [y,m,d]=key.split("-").map(Number); return new Date(y,m-1,d); }
+function generateId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function formatCurrency(amount){ return "\u20B9"+Math.round(Number(amount)||0).toLocaleString("en-IN"); }
+function formatDeadline(dateStr){ const d=parseDateKey(dateStr); return `${MONTH_NAMES[d.getMonth()].slice(0,3)} ${d.getDate()}, ${d.getFullYear()}`; }
+function categoryOf(id){ return CATEGORIES.find(c=>c.id===id) || CATEGORIES[CATEGORIES.length-1]; }
+function isSameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function isValidTime(hhmm){
+  if(!hhmm) return false;
+  const parts = hhmm.split(":");
+  if(parts.length!==2) return false;
+  const h=Number(parts[0]), m=Number(parts[1]);
+  return Number.isInteger(h)&&Number.isInteger(m)&&h>=0&&h<=23&&m>=0&&m<=59;
+}
+function todayAt(hhmm, refDate){
+  const d=new Date(refDate);
+  if(!isValidTime(hhmm)){ d.setHours(0,0,0,0); return d; }
+  const [h,m]=hhmm.split(":").map(Number);
+  d.setHours(h,m,0,0);
+  return d;
+}
+function fmtClock(d){ return d.toLocaleTimeString([], {hour12:false}); }
+function fmtCountdown(ms){
+  const totalSec=Math.max(0,Math.floor(ms/1000));
+  const h=Math.floor(totalSec/3600), m=Math.floor((totalSec%3600)/60), s=totalSec%60;
+  return h>0 ? `${h}h ${pad2(m)}m ${pad2(s)}s` : `${m}m ${pad2(s)}s`;
+}
+function fmtClockShort(ms){
+  const totalSec=Math.max(0,Math.floor(ms/1000));
+  const h=Math.floor(totalSec/3600), m=Math.floor((totalSec%3600)/60), s=totalSec%60;
+  return h>0 ? `${h}:${pad2(m)}:${pad2(s)}` : `${m}:${pad2(s)}`;
+}
+function timeAgo(ts, now){
+  const min=Math.floor((now-ts)/60000);
+  if(min<1) return "just now";
+  if(min<60) return `${min}m ago`;
+  const hr=Math.floor(min/60);
+  return `${hr}h ${min%60}m ago`;
+}
+function buildCalendarCells(year, month){
+  const first=new Date(year,month,1);
+  const startOffset=first.getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const daysInPrev=new Date(year,month,0).getDate();
+  const cells=[];
+  for(let i=startOffset-1;i>=0;i--) cells.push({date:new Date(year,month-1,daysInPrev-i), inMonth:false});
+  for(let d=1; d<=daysInMonth; d++) cells.push({date:new Date(year,month,d), inMonth:true});
+  while(cells.length<42){ const last=cells[cells.length-1].date; cells.push({date:new Date(last.getFullYear(),last.getMonth(),last.getDate()+1), inMonth:false}); }
+  return cells;
+}
+function escapeHtml(str){ const div=document.createElement("div"); div.textContent=str==null?"":str; return div.innerHTML; }
+
+/* ============================================================== */
+/* State + persistence                                              */
+/* ============================================================== */
+
+const STORAGE_KEY = "colive-state-v1";
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      return Object.assign(defaultState(), parsed);
+    }
+  }catch(e){ /* ignore corrupt data */ }
+  return defaultState();
+}
+function defaultState(){
+  return {
+    expenses: [],
+    goals: [],
+    tasks: [],
+    waterLog: [],
+    lastDrink: Date.now(),
+    reminderHours: 2,
+    alertsEnabled: false,
+  };
+}
+let state = loadState();
+
+function persist(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      expenses: state.expenses, goals: state.goals, tasks: state.tasks,
+      waterLog: state.waterLog, lastDrink: state.lastDrink,
+      reminderHours: state.reminderHours, alertsEnabled: state.alertsEnabled,
+    }));
+  }catch(e){ /* storage full or unavailable; ignore */ }
+}
+
+/* Transient UI state (not persisted) */
+let ui = {
+  activeTab: "money",
+  viewYear: new Date().getFullYear(),
+  viewMonth: new Date().getMonth(),
+  selectedDateKey: null,
+  contributingGoalId: null,
+  resetConfirm: false,
+  routineSelectedIndex: 0,
+  routineDragIndex: -1,
+  notifPermission: (typeof Notification!=="undefined") ? Notification.permission : "unsupported",
+  waterNotified: false,
+};
+
+/* ============================================================== */
+/* Tabs + vitals                                                    */
+/* ============================================================== */
+
+function showTab(tab){
+  ui.activeTab = tab;
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.getElementById("panel-"+tab).classList.add("active");
+  document.querySelectorAll(".tab-btn").forEach(b=>{
+    const active = b.dataset.tab === tab;
+    b.classList.toggle("active", active);
+    const accent = tab==="money" ? "var(--money-accent)" : tab==="routine" ? "var(--ember)" : "var(--aqua)";
+    if(b.dataset.tab===tab){ b.style.background = getComputedStyle(document.documentElement).getPropertyValue(
+        tab==="money"?"--money-accent":tab==="routine"?"--ember":"--aqua"); b.style.color="var(--shell-bg0)"; }
+    else { b.style.background="transparent"; b.style.color="var(--mist)"; }
+  });
+  ["Money","Routine","Hydration"].forEach(name=>{
+    const el = document.getElementById("vital"+name);
+    el.classList.toggle("active", name.toLowerCase()===tab);
+  });
+  renderActivePanel();
+}
+
+function renderActivePanel(){
+  if(ui.activeTab==="money") renderMoneyPanel();
+  else if(ui.activeTab==="routine") renderRoutinePanel();
+  else renderHydrationPanel();
+}
+
+function findNextTask(now){
+  let best=null, bestMs=Infinity;
+  for(const t of state.tasks){
+    if(!isValidTime(t.time)) continue;
+    const at = todayAt(t.time, now);
+    const ms = at.getTime()-now.getTime();
+    if(ms>=0 && ms<bestMs){ bestMs=ms; best=t; }
+  }
+  return best;
+}
+
+function updateVitals(now){
+  const todayKey = toDateKey(now);
+  const todaySpend = state.expenses.filter(e=>e.date===todayKey).reduce((s,e)=>s+Number(e.amount),0);
+  document.getElementById("vitalMoneyValue").textContent = formatCurrency(todaySpend);
+
+  const next = findNextTask(now);
+  const routineLabel = document.querySelector("#vitalRoutine .vital-label");
+  const routineVal = document.getElementById("vitalRoutineValue");
+  const routineSub = document.getElementById("vitalRoutineSub");
+  if(next){
+    routineLabel.textContent = "Up next";
+    routineVal.textContent = next.name || "Untitled";
+    routineSub.textContent = "starts at "+next.time;
+  } else {
+    routineLabel.textContent = "Routine";
+    routineVal.textContent = "Nothing scheduled";
+    routineSub.textContent = "";
+  }
+
+  const reminderMs = state.reminderHours*60*60*1000;
+  const remaining = reminderMs - (now.getTime()-state.lastDrink);
+  const hydraCard = document.getElementById("vitalHydration");
+  const hydraLabel = document.querySelector("#vitalHydration .vital-label");
+  const hydraVal = document.getElementById("vitalHydrationValue");
+  if(remaining<=0){
+    hydraLabel.textContent="Water due";
+    hydraVal.textContent="Grab some water";
+    hydraCard.classList.add("urgent");
+    if(!ui.waterNotified){ ui.waterNotified=true; notify("Time to drink water", `Your ${state.reminderHours}h hydration timer is up.`); }
+  } else {
+    hydraLabel.textContent="Next glass";
+    hydraVal.textContent=fmtClockShort(remaining);
+    hydraCard.classList.remove("urgent");
+    ui.waterNotified=false;
+  }
+
+  // 5-minute task warning
+  if(next){
+    const at = todayAt(next.time, now);
+    const msToTask = at.getTime()-now.getTime();
+    if(msToTask<=WARN_MS && msToTask>0 && !next.warned){
+      next.warned = true;
+      notify(`Starting in 5 minutes: ${next.name}`, `Scheduled for ${next.time}`);
+    }
+  }
+}
+
+function notify(title, body){
+  if(!state.alertsEnabled) return;
+  if(ui.notifPermission==="granted"){
+    try{ new Notification(title, {body}); }catch(e){ /* some browsers restrict this */ }
+  }
+}
+
+/* ============================================================== */
+/* Money panel                                                      */
+/* ============================================================== */
+
+function monthPrefix(){ return `${ui.viewYear}-${pad2(ui.viewMonth+1)}`; }
+
+function monthExpenses(){ return state.expenses.filter(e=>e.date.startsWith(monthPrefix())); }
+
+function renderMoneyPanel(){
+  const today = new Date();
+  const cells = buildCalendarCells(ui.viewYear, ui.viewMonth);
+  const mExpenses = monthExpenses();
+  const totalSpent = mExpenses.reduce((s,e)=>s+Number(e.amount),0);
+  const daysInMonth = new Date(ui.viewYear, ui.viewMonth+1, 0).getDate();
+  const avgPerDay = totalSpent/daysInMonth;
+
+  const byDate = {};
+  for(const e of mExpenses){
+    if(!byDate[e.date]) byDate[e.date] = { total:0, items:[], cats:new Set() };
+    byDate[e.date].total += Number(e.amount);
+    byDate[e.date].items.push(e);
+    byDate[e.date].cats.add(e.category);
+  }
+
+  const catTotals = {};
+  for(const e of mExpenses) catTotals[e.category] = (catTotals[e.category]||0) + Number(e.amount);
+  const catList = CATEGORIES.map(c=>({...c, value: catTotals[c.id]||0})).filter(c=>c.value>0).sort((a,b)=>b.value-a.value);
+
+  const cellsHtml = cells.map(cell=>{
+    const key = toDateKey(cell.date);
+    const info = byDate[key];
+    const isToday = isSameDay(cell.date, today);
+    const dotsHtml = info ? `<div class="cal-dots">${[...info.cats].slice(0,3).map(c=>`<span style="background:${categoryOf(c).color}"></span>`).join("")}</div>` : "";
+    const totalHtml = info ? `<div class="cal-total">${formatCurrency(info.total)}</div>` : "";
+    return `<button class="cal-cell ${cell.inMonth?"":"out"} ${isToday?"today":""}" onclick="openDayModal('${key}')">
+      <span class="cal-date">${cell.date.getDate()}</span>
+      <div>${dotsHtml}${totalHtml}</div>
+    </button>`;
+  }).join("");
+
+  const catRows = catList.length ? catList.slice(0,6).map(c=>`
+    <div class="cat-row">
+      <span class="name"><span class="cat-dot" style="background:${c.color}"></span>${c.label}</span>
+      <span style="font-family:var(--mono)">${formatCurrency(c.value)}</span>
+    </div>`).join("") : `<div class="empty-note">No expenses logged yet this month.</div>`;
+
+  const goalRows = state.goals.length ? state.goals.map(g=>{
+    const p = goalProgress(g);
+    const barColor = g.type==="savings" ? "var(--money-gold)" : (p.over ? "var(--money-alert)" : "var(--money-accent)");
+    return `<div class="goal-row">
+      <div class="goal-top">
+        <span class="goal-name">${g.type==="savings"?"\uD83D\uDC37":"\uD83C\uDFAF"} ${escapeHtml(g.name)}</span>
+        <button class="goal-del" onclick="deleteGoal('${g.id}')" title="Remove">\u2715</button>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${p.pct}%;background:${barColor}"></div></div>
+      <div class="goal-bottom">
+        <span class="goal-amt">${formatCurrency(p.current)} / ${formatCurrency(g.targetAmount)}</span>
+        ${g.type==="budget" && p.over ? `<span class="over-flag">over</span>` : ""}
+        ${g.type==="savings" ? (ui.contributingGoalId===g.id
+            ? `<span style="display:flex;gap:4px;align-items:center">
+                 <input id="contribInput" type="number" placeholder="Amount" style="width:70px;font-family:var(--mono);font-size:11px;padding:3px 5px;border:1px solid var(--money-line);border-radius:5px;">
+                 <button class="contribute-link" onclick="confirmContribute('${g.id}')">Add</button>
+               </span>`
+            : `<button class="contribute-link" onclick="startContribute('${g.id}')">+ Add</button>`) : ""}
+      </div>
+      ${g.type==="savings" && g.deadline ? `<div class="deadline-note">Target date: ${formatDeadline(g.deadline)}</div>` : ""}
+    </div>`;
+  }).join("") : `<div class="empty-note">No goals yet. Set a budget limit or a savings target.</div>`;
+
+  const panel = document.getElementById("panel-money");
+  panel.innerHTML = `
+    <div class="money-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <h2>Finance Ledger</h2>
+      </div>
+      <button class="add-expense-btn" onclick="openDayModal('${toDateKey(today)}')">+ Add expense</button>
+    </div>
+    <div class="month-nav">
+      <div class="month-nav-left">
+        <button class="icon-btn" onclick="shiftMonth(-1)">&#8592;</button>
+        <button class="month-label" onclick="goToCurrentMonth()">${MONTH_NAMES[ui.viewMonth]} ${ui.viewYear}</button>
+        <button class="icon-btn" onclick="shiftMonth(1)">&#8594;</button>
+      </div>
+      <div id="resetArea">
+        <button class="reset-link" onclick="askReset()">Reset data</button>
+      </div>
+    </div>
+    <div class="money-grid">
+      <div class="calendar">
+        <div class="cal-weekdays">${WEEKDAYS.map(w=>`<div>${w}</div>`).join("")}</div>
+        <div class="cal-cells">${cellsHtml}</div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-label">This month</div>
+          <div class="card-total">${formatCurrency(totalSpent)}</div>
+          <div class="card-meta"><span>${mExpenses.length} transactions</span><span style="font-family:var(--mono)">${formatCurrency(avgPerDay)}/day avg</span></div>
+          ${catRows}
+        </div>
+        <div class="card">
+          <div class="goals-head">
+            <div class="card-label" style="margin:0">Goals</div>
+            <button class="add-goal-link" onclick="openGoalModal()">+ Add goal</button>
+          </div>
+          ${goalRows}
+        </div>
+      </div>
+    </div>
+  `;
+
+  if(ui.resetConfirm){
+    document.getElementById("resetArea").innerHTML = `
+      <span class="reset-confirm">Clear all data?
+        <button style="color:var(--money-alert)" onclick="clearAllData()">Yes</button>
+        <button onclick="cancelReset()">No</button>
+      </span>`;
+  }
+}
+
+function goalProgress(g){
+  const mExpenses = monthExpenses();
+  if(g.type==="budget"){
+    const spent = g.category==="overall"
+      ? mExpenses.reduce((s,e)=>s+Number(e.amount),0)
+      : mExpenses.filter(e=>e.category===g.category).reduce((s,e)=>s+Number(e.amount),0);
+    const pct = g.targetAmount>0 ? Math.min((spent/g.targetAmount)*100,100) : 0;
+    return { current:spent, pct, over: spent>g.targetAmount };
+  }
+  const current = g.savedAmount||0;
+  const pct = g.targetAmount>0 ? Math.min((current/g.targetAmount)*100,100) : 0;
+  return { current, pct, over:false };
+}
+
+function shiftMonth(delta){
+  let m = ui.viewMonth+delta, y = ui.viewYear;
+  if(m<0){ m=11; y--; } else if(m>11){ m=0; y++; }
+  ui.viewMonth=m; ui.viewYear=y;
+  renderMoneyPanel();
+}
+function goToCurrentMonth(){
+  const now = new Date();
+  ui.viewYear = now.getFullYear(); ui.viewMonth = now.getMonth();
+  renderMoneyPanel();
+}
+function askReset(){ ui.resetConfirm=true; renderMoneyPanel(); }
+function cancelReset(){ ui.resetConfirm=false; renderMoneyPanel(); }
+function clearAllData(){
+  state.expenses=[]; state.goals=[]; ui.resetConfirm=false;
+  persist(); renderMoneyPanel();
+}
+function startContribute(id){ ui.contributingGoalId=id; renderMoneyPanel(); setTimeout(()=>{ const el=document.getElementById("contribInput"); if(el) el.focus(); },0); }
+function confirmContribute(id){
+  const input = document.getElementById("contribInput");
+  const amt = Number(input ? input.value : 0);
+  if(amt>0){
+    const g = state.goals.find(g=>g.id===id);
+    if(g){ g.savedAmount = (g.savedAmount||0)+amt; persist(); }
+  }
+  ui.contributingGoalId=null;
+  renderMoneyPanel();
+}
+function deleteGoal(id){
+  state.goals = state.goals.filter(g=>g.id!==id);
+  persist(); renderMoneyPanel();
+}
+
+/* Day modal (add / view / delete expenses for one date) */
+function openDayModal(dateKey){
+  ui.selectedDateKey = dateKey;
+  renderDayModal();
+  document.getElementById("dayModalBackdrop").classList.add("open");
+}
+function closeDayModal(){
+  document.getElementById("dayModalBackdrop").classList.remove("open");
+}
+function renderDayModal(){
+  const key = ui.selectedDateKey;
+  const d = parseDateKey(key);
+  const label = `${WEEKDAYS[d.getDay()]}, ${MONTH_NAMES[d.getMonth()]} ${d.getDate()}`;
+  const items = state.expenses.filter(e=>e.date===key);
+  const total = items.reduce((s,e)=>s+Number(e.amount),0);
+
+  const itemsHtml = items.length ? items.map(item=>`
+    <div class="day-item">
+      <div class="left">
+        <span class="cat-dot" style="background:${categoryOf(item.category).color}"></span>
+        <span class="name">${categoryOf(item.category).label}${item.note?" \u00b7 "+escapeHtml(item.note):""}</span>
+      </div>
+      <div class="right">
+        <span style="font-family:var(--mono)">${formatCurrency(item.amount)}</span>
+        <button onclick="deleteExpense('${item.id}')" title="Delete">\u2715</button>
+      </div>
+    </div>`).join("") + `<div class="day-total-row"><span>Total</span><span style="font-family:var(--mono)">${formatCurrency(total)}</span></div>`
+    : "";
+
+  document.getElementById("dayModalBox").innerHTML = `
+    <div class="modal-head"><h2>${label}</h2><button class="modal-close" onclick="closeDayModal()">\u2715</button></div>
+    ${itemsHtml}
+    <div class="card-label" style="margin-bottom:10px;">Add expense</div>
+    <div class="modal-row">
+      <div><label>Amount</label><input id="expAmount" type="number" placeholder="0" autofocus></div>
+      <div><label>Category</label>
+        <select id="expCategory">${CATEGORIES.map(c=>`<option value="${c.id}">${c.label}</option>`).join("")}</select>
+      </div>
+    </div>
+    <label>Note (optional)</label>
+    <input id="expNote" type="text" placeholder="Note">
+    <button class="modal-submit" style="background:var(--money-accent)" onclick="submitExpense()">Add expense</button>
+  `;
+}
+function submitExpense(){
+  const amount = Number(document.getElementById("expAmount").value);
+  if(!amount || amount<=0) return;
+  const category = document.getElementById("expCategory").value;
+  const note = document.getElementById("expNote").value.trim();
+  state.expenses.push({ id:generateId(), date:ui.selectedDateKey, amount, category, note });
+  persist();
+  renderDayModal();
+  renderMoneyPanel();
+}
+function deleteExpense(id){
+  state.expenses = state.expenses.filter(e=>e.id!==id);
+  persist();
+  renderDayModal();
+  renderMoneyPanel();
+}
+
+/* Goal modal */
+function openGoalModal(){
+  document.getElementById("goalModalBox").innerHTML = `
+    <div class="modal-head"><h2>New goal</h2><button class="modal-close" onclick="closeGoalModal()">\u2715</button></div>
+    <div class="type-toggle">
+      <button id="goalTypeBudget" class="active-budget" onclick="setGoalType('budget')">\uD83C\uDFAF Budget limit</button>
+      <button id="goalTypeSavings" onclick="setGoalType('savings')">\uD83D\uDC37 Savings goal</button>
+    </div>
+    <label>Name</label>
+    <input id="goalName" type="text" placeholder="e.g. Groceries limit">
+    <label id="goalAmountLabel">Monthly limit amount</label>
+    <input id="goalAmount" type="number" placeholder="0">
+    <div id="goalExtraField">
+      <label>Category</label>
+      <select id="goalCategory"><option value="overall">Overall spending</option>${CATEGORIES.map(c=>`<option value="${c.id}">${c.label}</option>`).join("")}</select>
+    </div>
+    <button class="modal-submit" id="goalSubmitBtn" style="background:var(--money-accent)" onclick="submitGoal()">Save goal</button>
+  `;
+  goalModalState.type = "budget";
+  document.getElementById("goalModalBackdrop").classList.add("open");
+}
+function closeGoalModal(){ document.getElementById("goalModalBackdrop").classList.remove("open"); }
+const goalModalState = { type:"budget" };
+function setGoalType(type){
+  goalModalState.type = type;
+  document.getElementById("goalTypeBudget").className = type==="budget" ? "active-budget" : "";
+  document.getElementById("goalTypeSavings").className = type==="savings" ? "active-savings" : "";
+  document.getElementById("goalAmountLabel").textContent = type==="budget" ? "Monthly limit amount" : "Target amount";
+  document.getElementById("goalSubmitBtn").style.background = type==="budget" ? "var(--money-accent)" : "var(--money-gold)";
+  const extra = document.getElementById("goalExtraField");
+  extra.innerHTML = type==="budget"
+    ? `<label>Category</label><select id="goalCategory"><option value="overall">Overall spending</option>${CATEGORIES.map(c=>`<option value="${c.id}">${c.label}</option>`).join("")}</select>`
+    : `<label>Target date (optional)</label><input id="goalDeadline" type="date">`;
+}
+function submitGoal(){
+  const name = document.getElementById("goalName").value.trim();
+  const amount = Number(document.getElementById("goalAmount").value);
+  if(!name || !amount || amount<=0) return;
+  const type = goalModalState.type;
+  const goal = {
+    id: generateId(), name, type, targetAmount: amount, savedAmount: 0,
+    category: type==="budget" ? document.getElementById("goalCategory").value : null,
+    deadline: type==="savings" ? (document.getElementById("goalDeadline")?.value || null) : null,
+  };
+  state.goals.push(goal);
+  persist();
+  closeGoalModal();
+  renderMoneyPanel();
+}
+
+/* ============================================================== */
+/* Routine panel                                                    */
+/* ============================================================== */
+
+function renderRoutinePanel(){
+  const now = new Date();
+  const next = findNextTask(now);
+
+  let bannerHtml = "";
+  if(next){
+    const at = todayAt(next.time, now);
+    const warnAt = new Date(at.getTime()-WARN_MS);
+    const msToTask = at.getTime()-now.getTime();
+    const msToWarn = warnAt.getTime()-now.getTime();
+    let tag="UP NEXT", firing=false, text="";
+    if(msToWarn<=0 && msToTask>0){ tag="STARTING SOON"; firing=true; text="Begins in "+fmtCountdown(msToTask); }
+    else if(msToTask<=0){ tag="NOW"; firing=true; text="This task is starting."; }
+    else { text = "Alarm in "+fmtCountdown(msToWarn)+" \u00b7 starts at "+next.time; }
+    bannerHtml = `<div class="routine-banner ${firing?"firing":""}">
+      <div class="banner-tag">${tag}</div>
+      <div class="banner-task">${escapeHtml(next.name)}</div>
+      <div class="banner-countdown">${text}</div>
+    </div>`;
+  }
+
+  if(ui.routineSelectedIndex >= state.tasks.length) ui.routineSelectedIndex = Math.max(0, state.tasks.length-1);
+  const selected = state.tasks[ui.routineSelectedIndex];
+
+  const tabsHtml = state.tasks.map((t,i)=>`
+    <button class="rt-tab ${i===ui.routineSelectedIndex?"active":""}" draggable="true"
+      ondragstart="routineDragStart(event,${i})" ondragover="routineDragOver(event,${i})" ondrop="routineDrop(event,${i})" ondragend="routineDragEnd(event)"
+      onclick="selectRoutineTab(${i})">${escapeHtml(t.time||"--:--")}&nbsp;&nbsp;${escapeHtml(t.name||"Untitled")}</button>
+  `).join("") + `<button class="rt-tab add" onclick="openTaskModal()">+</button>`;
+
+  let formHtml = `<div class="rt-empty">No tasks yet \u2014 tap + to add your first one.</div>`;
+  if(selected){
+    const timeValid = isValidTime(selected.time);
+    let countdownText="", countdownColor="var(--ember)";
+    if(timeValid){
+      const at = todayAt(selected.time, now);
+      const ms = at.getTime()-now.getTime();
+      if(ms>=0) countdownText = "Starts in "+fmtCountdown(ms);
+      else { countdownText = "Already passed today"; countdownColor="var(--mist)"; }
+    }
+    formHtml = `
+      <div class="rt-form">
+        <div class="field-block">
+          <label class="field-label">Time (24h)</label>
+          <input type="time" id="rtTime" value="${selected.time||""}" oninput="editSelectedTask({time:this.value})">
+          ${!timeValid ? `<div class="rt-error">Use 24-hour HH:mm, e.g. 09:30</div>` : ""}
+        </div>
+        <div class="field-block">
+          <label class="field-label">Task name</label>
+          <input type="text" id="rtName" value="${escapeHtml(selected.name||"")}" oninput="editSelectedTask({name:this.value})">
+        </div>
+        <div class="field-block">
+          <label class="field-label">Notes</label>
+          <textarea id="rtNote" oninput="editSelectedTask({note:this.value})">${escapeHtml(selected.note||"")}</textarea>
+        </div>
+        <div class="rt-countdown" style="color:${countdownColor}">${countdownText}</div>
+        <div class="rt-actions">
+          <button ${ui.routineSelectedIndex===0?"disabled":""} onclick="moveTask(${ui.routineSelectedIndex},-1)">&#9664; Move earlier</button>
+          <button ${ui.routineSelectedIndex===state.tasks.length-1?"disabled":""} onclick="moveTask(${ui.routineSelectedIndex},1)">Move later &#9654;</button>
+          <button class="danger" onclick="deleteTask(${ui.routineSelectedIndex})">Delete task</button>
+        </div>
+      </div>
+    `;
+  }
+
+  document.getElementById("panel-routine").innerHTML = `
+    ${bannerHtml}
+    <div class="routine-hint">Each task gets a heads-up 5 minutes before it starts. Drag a tab, or use its arrows, to reorder.</div>
+    <div class="routine-tabbar">${tabsHtml}</div>
+    ${formHtml}
+  `;
+}
+
+function selectRoutineTab(i){ ui.routineSelectedIndex=i; renderRoutinePanel(); }
+
+function editSelectedTask(patch){
+  const t = state.tasks[ui.routineSelectedIndex];
+  if(!t) return;
+  Object.assign(t, patch);
+  persist();
+  // update just the tab label + countdown/error inline, avoid full re-render (which would steal focus)
+  const tabs = document.querySelectorAll(".rt-tab");
+  const tab = tabs[ui.routineSelectedIndex];
+  if(tab) tab.textContent = `${t.time||"--:--"}  ${t.name||"Untitled"}`;
+  const errBox = document.querySelector(".rt-form .rt-error");
+  const timeValid = isValidTime(t.time);
+  const timeField = document.querySelector(".rt-form .field-block");
+  if(patch.time!==undefined){
+    if(!timeValid && !errBox){ timeField.insertAdjacentHTML("beforeend", `<div class="rt-error">Use 24-hour HH:mm, e.g. 09:30</div>`); }
+    else if(timeValid && errBox){ errBox.remove(); }
+  }
+}
+
+function moveTask(index, delta){
+  const target = index+delta;
+  if(target<0 || target>=state.tasks.length) return;
+  const [t] = state.tasks.splice(index,1);
+  state.tasks.splice(target,0,t);
+  ui.routineSelectedIndex = target;
+  persist();
+  renderRoutinePanel();
+}
+function deleteTask(index){
+  if(!confirm(`Delete "${state.tasks[index].name||"this task"}"?`)) return;
+  state.tasks.splice(index,1);
+  persist();
+  renderRoutinePanel();
+}
+
+function routineDragStart(e,i){ ui.routineDragIndex=i; e.currentTarget.classList.add("dragging"); }
+function routineDragOver(e,i){ e.preventDefault(); }
+function routineDrop(e,i){
+  e.preventDefault();
+  if(ui.routineDragIndex<0 || ui.routineDragIndex===i) return;
+  const [t] = state.tasks.splice(ui.routineDragIndex,1);
+  state.tasks.splice(i,0,t);
+  ui.routineSelectedIndex = i;
+  ui.routineDragIndex = -1;
+  persist();
+  renderRoutinePanel();
+}
+function routineDragEnd(e){ document.querySelectorAll(".rt-tab").forEach(t=>t.classList.remove("dragging")); ui.routineDragIndex=-1; }
+
+function openTaskModal(){
+  document.getElementById("taskModalBox").innerHTML = `
+    <div class="modal-head"><h2>New task</h2><button class="modal-close" onclick="closeTaskModal()">\u2715</button></div>
+    <label>Time (HH:mm)</label>
+    <input id="newTaskTime" type="time" value="09:00">
+    <label>Task name</label>
+    <input id="newTaskName" type="text" placeholder="e.g. Team standup" autofocus>
+    <button class="modal-submit" style="background:var(--ember);color:var(--shell-bg0)" onclick="submitNewTask()">Add task</button>
+  `;
+  document.getElementById("taskModalBackdrop").classList.add("open");
+}
+function closeTaskModal(){ document.getElementById("taskModalBackdrop").classList.remove("open"); }
+function submitNewTask(){
+  let time = document.getElementById("newTaskTime").value;
+  let name = document.getElementById("newTaskName").value.trim();
+  if(!isValidTime(time)) time = "09:00";
+  if(!name) name = "New task";
+  state.tasks.push({ id:generateId(), time, name, note:"", warned:false });
+  ui.routineSelectedIndex = state.tasks.length-1;
+  persist();
+  closeTaskModal();
+  renderRoutinePanel();
+}
+
+/* ============================================================== */
+/* Hydration panel                                                  */
+/* ============================================================== */
+
+function renderHydrationPanel(){
+  const now = new Date();
+  const reminderMs = state.reminderHours*60*60*1000;
+  const elapsed = now.getTime()-state.lastDrink;
+  const remaining = reminderMs-elapsed;
+  const pct = Math.min(1, Math.max(0, elapsed/reminderMs));
+  const isDue = remaining<=0;
+  const dropHeight = 240;
+  const yOffset = pct*dropHeight;
+
+  const logHtml = state.waterLog.length ? state.waterLog.slice().reverse().map(ts=>`
+    <div class="hydra-log-row">
+      <span class="hydra-dot"></span>
+      <span>${new Date(ts).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})}</span>
+      <span class="hydra-ago">${timeAgo(ts, now.getTime())}</span>
+    </div>`).join("") : `<div class="empty-note" style="color:var(--mist)">No entries yet \u2014 tap the button after your next glass.</div>`;
+
+  document.getElementById("panel-hydration").innerHTML = `
+    <div class="hydration-wrap">
+      <div class="gauge-wrap">
+        <svg viewBox="0 0 220 260">
+          <defs>
+            <clipPath id="dropClip"><path d="M110 10 C110 10 30 110 30 175 C30 220 66 250 110 250 C154 250 190 220 190 175 C190 110 110 10 110 10 Z"/></clipPath>
+            <linearGradient id="waveGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3FE0D0"/><stop offset="100%" stop-color="#1B8E85"/>
+            </linearGradient>
+          </defs>
+          <path d="M110 10 C110 10 30 110 30 175 C30 220 66 250 110 250 C154 250 190 220 190 175 C190 110 110 10 110 10 Z"
+                fill="rgba(241,239,234,0.05)" stroke="rgba(241,239,234,0.18)" stroke-width="1.5"/>
+          <g clip-path="url(#dropClip)">
+            <g id="waveGroup" transform="translate(0,${yOffset})">
+              <path class="wave-path" fill="url(#waveGrad)" d="M0 40 Q 27.5 25 55 40 T 110 40 T 165 40 T 220 40 T 275 40 T 330 40 T 385 40 T 440 40 V260 H0 Z"/>
+            </g>
+          </g>
+        </svg>
+        <div class="gauge-readout">
+          <div class="gauge-time">${isDue?"0:00":fmtClockShort(remaining)}</div>
+          <div class="gauge-label">${isDue?"time's up":"until next glass"}</div>
+        </div>
+      </div>
+      <div class="hydra-status ${isDue?"due":""}">${isDue?"Your gauge has run dry \u2014 grab some water.":""}</div>
+      <button class="log-water-btn" id="logWaterBtn" onclick="logWater()">I drank water</button>
+      <div class="interval-row">
+        <span>Remind me every</span>
+        <input type="number" min="0.5" step="0.5" value="${state.reminderHours}" onchange="setReminderHours(this.value)">
+        <span>hours</span>
+      </div>
+      <div class="hydra-log">
+        <h3>Today's log</h3>
+        ${logHtml}
+      </div>
+    </div>
+  `;
+}
+function logWater(){
+  const ts = Date.now();
+  state.lastDrink = ts;
+  state.waterLog.push(ts);
+  ui.waterNotified = false;
+  persist();
+  renderHydrationPanel();
+  const btn = document.getElementById("logWaterBtn");
+  if(btn){ btn.classList.remove("ripple"); void btn.offsetWidth; btn.classList.add("ripple"); }
+}
+function setReminderHours(val){
+  const n = Math.max(0.5, Number(val)||2);
+  state.reminderHours = n;
+  persist();
+  renderHydrationPanel();
+}
+
+/* ============================================================== */
+/* Alerts toggle                                                    */
+/* ============================================================== */
+
+function updateAlertsButton(){
+  const btn = document.getElementById("alertsBtn");
+  if(ui.notifPermission==="unsupported"){ btn.style.display="none"; return; }
+  if(state.alertsEnabled && ui.notifPermission==="granted"){
+    btn.textContent = "Alerts on";
+    btn.classList.add("on");
+  } else {
+    btn.textContent = "Enable alerts";
+    btn.classList.remove("on");
+  }
+}
+document.getElementById("alertsBtn").addEventListener("click", async ()=>{
+  if(typeof Notification==="undefined") return;
+  const perm = await Notification.requestPermission();
+  ui.notifPermission = perm;
+  state.alertsEnabled = (perm==="granted");
+  persist();
+  updateAlertsButton();
+});
+
+/* ============================================================== */
+/* Clock tick                                                       */
+/* ============================================================== */
+
+function tick(){
+  const now = new Date();
+  document.getElementById("clockLabel").textContent =
+    fmtClock(now) + "  \u00b7  " + now.toLocaleDateString([], {weekday:"short", month:"short", day:"numeric"});
+  updateVitals(now);
+  if(ui.activeTab==="routine") renderRoutinePanel();
+  if(ui.activeTab==="hydration") renderHydrationPanel();
+}
+
+/* ============================================================== */
+/* Init                                                              */
+/* ============================================================== */
+
+updateAlertsButton();
+renderMoneyPanel();
+renderRoutinePanel();
+renderHydrationPanel();
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
